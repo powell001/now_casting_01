@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pymc as pm
-from myhelpers import printme
+from trend.myhelpers import printme
 from scipy import signal
 from graphviz import Source
 # import preliz as pz #

@@ -8,9 +8,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.linear_model import Ridge, RidgeCV, Lasso
 from sklearn.preprocessing import StandardScaler
 #from sklearn.datasets import load_boston
-from sklearn.datasets import fetch_california_housing
-   
+from sklearn.datasets import fetch_california_housing   
 from sklearn.datasets import fetch_openml
+
 housing = fetch_openml(name="house_prices", as_frame=True)
 
 print(housing.DESCR)
@@ -23,7 +23,12 @@ print("type: ", type(housing))
 df = pd.DataFrame(data = housing.data, columns = housing.feature_names)
 df = df.loc[:, ['LotArea', 'GrLivArea', 'TotRmsAbvGrd', 'OverallQual', 'GarageArea']]
 df['Price'] = housing.target
+
+df = (df - df.mean())/df.std()
+
 print(df)
+
+df.to_csv("lasso_data.csv")
 
 #Exploration
 plt.figure(figsize = (10, 10))
@@ -35,7 +40,7 @@ sns.pairplot(df)
 #plt.show()
 
 #preview
-features = df.columns[0:4]
+features = df.columns[0:5]
 target = df.columns[-1]
 
 #X and y values
@@ -59,9 +64,9 @@ lr = LinearRegression()
 lr.fit(X_train, y_train)
 
 #predict
-#prediction = lr.predict(X_test)
+prediction = lr.predict(X_test)
 
-#actual
+# #actual
 actual = y_test
 
 train_score_lr = lr.score(X_train, y_train)
@@ -70,9 +75,8 @@ test_score_lr = lr.score(X_test, y_test)
 print("The train score for lr model is {}".format(train_score_lr))
 print("The test score for lr model is {}".format(test_score_lr))
 
-
 #Ridge Regression Model
-ridgeReg = Ridge(alpha=10)
+ridgeReg = Ridge(alpha=1)
 
 ridgeReg.fit(X_train,y_train)
 
@@ -83,3 +87,8 @@ test_score_ridge = ridgeReg.score(X_test, y_test)
 print("\nRidge Model............................................\n")
 print("The train score for ridge model is {}".format(train_score_ridge))
 print("The test score for ridge model is {}".format(test_score_ridge))
+
+# summary of the model 
+print('model intercept :', ridgeReg.intercept_) 
+print('model coefficients : ', ridgeReg.coef_) 
+print('Model score : ', ridgeReg.score(X, y)) 

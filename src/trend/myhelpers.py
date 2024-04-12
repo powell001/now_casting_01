@@ -8,4 +8,4 @@ def printme(data):
     print(Fore.RED + "DataFrame shape: \n", data.shape)
     print(Fore.RED + "DataFrame describe: \n", data.describe())
     print(Fore.RED + "DataFrame index type: \n", data.index.dtype)
-    print(Fore.RED + "DataFrame info: \n", data.info())
+    data.info()

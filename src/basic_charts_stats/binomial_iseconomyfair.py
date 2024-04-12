@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pymc as pm
-from myhelpers import printme
+from trend.myhelpers import printme
 from scipy import signal
 from graphviz import Source
 # import preliz as pz #
@@ -171,6 +171,7 @@ def plotdata():
     axs[5].plot(df1.loc[:, "gdp_total_detrend_positive"])
     axs[5].title.set_text("gdp_total_detrend_positive")
 
+    plt.savefig("../fig/gdp_allforms.png")
     plt.show()
 
 plotdata()
