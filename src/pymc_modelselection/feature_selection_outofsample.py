@@ -92,7 +92,6 @@ data1 = data1.join(x)
 normalized_data1 = (data1 - data1.mean())/data1.std()
 #normalized_data1['gdp_total'] = data1['gdp_total']
 
-
 ### Diff Log gdp_total
 normalized_data1['gdp_total'] = np.log(gdp_total_original).diff(1)
 
@@ -212,7 +211,8 @@ df1['gdp_total'].hist();
 
 ##############################################################
 #####
-selectGooduns = ['dummy_downturn', 'gdp_total', 'EconomischeSituatieLaatste12Maanden_4_monthly','lag_gdp_total', 'FinancieleSituatieLaatste12Maanden_6_monthly', 'FinancieleSituatieKomende12Maanden_7_monthly','CPIAfgeleid_2_monthly', 'EA_monthly']
+selectGooduns = ['dummy_downturn', 'gdp_total', 'EconomischeSituatieLaatste12Maanden_4_monthly','lag_gdp_total', 'FinancieleSituatieLaatste12Maanden_6_monthly', 
+                 'FinancieleSituatieKomende12Maanden_7_monthly','CPIAfgeleid_2_monthly', 'EA_monthly']
 df2 = df1[selectGooduns]
 
 df2.to_csv("output_csvs_etc\model_data.csv")
@@ -224,7 +224,7 @@ y = X.pop("gdp_total")
 N, D = X.shape
 print(N, D)
 
-number1 = -2
+number1 = -20
 # Train ############
 X_train = X.iloc[0:number1, :]
 y_train = y.iloc[0:number1]
@@ -238,51 +238,51 @@ y_test = y.iloc[number1:]
 ###################################################################################
 ###################################################################################
 
-# assert N == X_train.shape[0] + X_test.shape[0]
+assert N == X_train.shape[0] + X_test.shape[0]
 
-# with pm.Model(coords={"predictors": X.columns.values}) as best_model1:
+with pm.Model(coords={"predictors": X.columns.values}) as best_model1:
     
-#     # data containers
-#     X = pm.MutableData("X", X_train.values)
-#     y = pm.MutableData("y", y_train.values)
+    # data containers
+    X = pm.MutableData("X", X_train.values)
+    y = pm.MutableData("y", y_train.values)
 
-#     # priors
-#     betas = pm.Normal("betas", 0, 50, dims="predictors")
-#     sigma = pm.HalfNormal("sigma", 50)
+    # priors
+    betas = pm.Normal("betas", 0, 50, dims="predictors")
+    sigma = pm.HalfNormal("sigma", 50)
    
-#     # linear model
-#     mu = at.dot(X, betas)
+    # linear model
+    mu = at.dot(X, betas)
 
-#     # link function
-#     # p = pm.Deterministic("p", mu)
+    # link function
+    # p = pm.Deterministic("p", mu)
 
-#     # likelihood
-#     outcome = pm.Normal("obs", mu=mu, sigma=sigma, observed=y)
+    # likelihood
+    outcome = pm.Normal("obs", mu=mu, sigma=sigma, observed=y)
 
-#     # inference data
-#     idata = pm.sample(draws = mydraws, n_init=myn_init, chains=mychains, cores=1, tune=mytune, return_inferencedata=True)
+    # inference data
+    idata = pm.sample(draws = mydraws, n_init=myn_init, chains=mychains, cores=1, tune=mytune, return_inferencedata=True)
 
-# print(az.summary(idata, var_names=["betas"], round_to=2))
-# az.plot_trace(idata, var_names=["betas"], compact=True);
-# plt.show()
-# plt.close()
+print(az.summary(idata, var_names=["betas"], round_to=2))
+az.plot_trace(idata, var_names=["betas"], compact=True);
+plt.show()
+plt.close()
 
-# print(az.summary(idata))
+print(az.summary(idata))
 
-# az.plot_posterior(
-#     idata, var_names=["betas"], figsize=(15, 4)
-# );
+az.plot_posterior(
+    idata, var_names=["betas"], figsize=(15, 4)
+);
 
-# with best_model1:
-#     pm.set_data({"X": X_test.values, "y": y_test})
-#     idata.extend(pm.sample_posterior_predictive(idata))
+with best_model1:
+    pm.set_data({"X": X_test.values, "y": y_test})
+    idata.extend(pm.sample_posterior_predictive(idata))
 
-# # Compute the point prediction by taking the mean and defining the category via a threshold.
-# p_test_pred = idata.posterior_predictive["obs"].mean(dim=["chain", "draw"])
-# print(p_test_pred)
+# Compute the point prediction by taking the mean and defining the category via a threshold.
+p_test_pred = idata.posterior_predictive["obs"].mean(dim=["chain", "draw"])
+print(p_test_pred)
 
-# az.plot_posterior(idata.posterior_predictive["obs"])
-# plt.show()
+az.plot_posterior(idata.posterior_predictive["obs"])
+plt.show()
 
 ###################################################################################
 ###################################################################################

@@ -12,7 +12,6 @@ from local_linear_trend_code import LocalLinearTrend
 
 data1 = pd.read_csv("data/a0_combinedMonthly.csv", index_col=[0])
 data1.index = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
-
 dates = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
 
 emptyDF = pd.DataFrame(np.nan, index=dates,columns = data1.columns )
@@ -45,8 +44,6 @@ for i in np.arange(0,cols):
         emptyDF.iloc[-len(onefeature)-1:-1, i] = onefeature
 
     
-
-
 extendedMonthlydata = emptyDF.iloc[:-1,:]
 extendedMonthlydata.to_csv("data/a0_combinedMonthly_statespace.csv")
 extendedMonthlydata.to_csv("src/state_space_python/a0_combinedMonthly_statespace.csv")
