@@ -11,7 +11,7 @@ import seaborn as sns
 
 # Hogg: chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/https://arxiv.org/pdf/1008.4686.pdf
 
-print(f"Running on PyMC3 v{pm.__version__}")
+print(f"Running on PyMC v{pm.__version__}")
 
 ### plots ###
 az.style.use("arviz-grayscale")
