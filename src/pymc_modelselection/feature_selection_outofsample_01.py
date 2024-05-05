@@ -34,8 +34,8 @@ print(f"Running on PyMC v{pm.__version__}")
 mytune = 500
 mydraws = 2000
 myn_init = None
-mychains = 1
-mycores = 2
+mychains = 2
+mycores = 1
 
 df1, firstGDPlog = collecttransform()
 

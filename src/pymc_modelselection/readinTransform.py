@@ -19,7 +19,7 @@ def collecttransform():
     # use C:\Users\jpark\VSCode\now_casting_01\src\state_space_python\local_linear_trend_data_quarterly
     # to extend gdp data
 
-    data1 = pd.read_csv("data\mergedDataforAnalysis.csv", index_col=[0])
+    data1 = pd.read_csv("data\mergedDataforAnalysis_statespace.csv", index_col=[0])
     gdp_total_original = data1['gdp_total']
 
     numcols = data1.shape[1]
@@ -28,29 +28,30 @@ def collecttransform():
     month_columns = pd.read_csv("data\\a0_combinedMonthly.csv", index_col=[0])
     data1.columns = [f'{i}_monthly' if i in month_columns else f'{i}' for i in data1.columns]
 
-    ### Difference
-    nodiffthese = ['Bankruptcies_monthly', 'BusinessOutlook_Industry_monthly', 'BusinessOutlook_Retail_monthly', 'Consumentenvertrouwen_1_monthly',
-                'EconomischKlimaat_2_monthly', 'Koopbereidheid_3_monthly', 'EconomischeSituatieLaatste12Maanden_4_monthly', 'EconomischeSituatieKomende12Maanden_5_monthly',
-                'FinancieleSituatieLaatste12Maanden_6_monthly', 'FinancieleSituatieKomende12Maanden_7_monthly', 'GunstigeTijdVoorGroteAankopen_8_monthly', "CPI_1_monthly",
-                'CPIAfgeleid_2_monthly', 'MaandmutatieCPI_3_monthly', 'MaandmutatieCPIAfgeleid_4_monthly', 'ProducerConfidence_1_monthly', 'ExpectedActivity_2_monthly', 
-                'CHN_monthly', 'JPN_monthly', 'FRA_monthly', 'USA_monthly', 'DEU_monthly', 'CAN_monthly', 'G20_monthly', 'IMP_advanceEconomies_monthly', 'EXP_advancedEconomies_monthly', 
-                'IMP_EuroArea_monthly', 'Exp_EuroArea_monthly', 'InterestRatesNLD_monthly', 'EA_monthly', 'US_monthly', 'UK_monthly', 'dummy_downturn']
+    # remove season data
+    data1.drop(columns=['gdp_total_season', 'imports_goods_services_season', 'household_cons_season', 'gov_consumption_season', 'investments_season', 'gpd_invest_business_households_season', 
+                        'gov_invest_season', 'change_supply_season', 'exports_goods_services_season'], inplace=True)
 
-    diffthese = ['gdp_total', 'imports_goods_services', 'household_cons', 'gov_consumption', 'investments',
-                'gpd_invest_business_households', 'gov_invest', 'change_supply', 'exports_goods_services',
-                'BeloningSeizoengecorrigeerd_2', 'Loonkosten_7', 'BeloningVanWerknemers_8',
-                'M3_1_monthly', 'M3_2_monthly', 'M1_monthly', 'AEX_close_monthly']
+    printme(data1)
+
+    ### Difference
+    nodiffthese = data1.columns.tolist()
+    nodiffthese.remove('gdp_total')
+    
+    diffthese = ['gdp_total']
 
     ######################
     # Dummy removed???
     ######################
-
-    assert numcols == len(nodiffthese) + len(diffthese) - 1 #dummy
+    assert numcols == len(nodiffthese) + len(diffthese) + 9#seasonned, dummy
 
     # diff these
     diff_data1 = data1.copy()
     data1.to_csv("output_csvs_etc\datanodiff.csv")
+
     data1[diffthese] = diff_data1[diffthese].diff()
+
+    printme(data1)
 
     # lag these (real values wont be available)
     lagthese = ['imports_goods_services', 'household_cons', 'gov_consumption', 'investments',
@@ -117,13 +118,13 @@ def collecttransform():
     ##############
     # Examine model data
     ##############
-    too_few_obs = ['BusinessOutlook_Industry_monthly', 'BusinessOutlook_Retail_monthly', 'IMP_advanceEconomies_monthly', 'EXP_advancedEconomies_monthly', 'IMP_EuroArea_monthly', 'Exp_EuroArea_monthly', 'InterestRatesNLD_monthly']
+    too_few_obs = ['BusinessOutlook_Industry_monthly', 'BusinessOutlook_Retail_monthly', 'IMP_advanceEconomies_monthly', 'EXP_advancedEconomies_monthly', 'IMP_EuroArea_monthly', 'Exp_EuroArea_monthly']
     df1.drop(columns = too_few_obs, inplace = True)
     df1.dropna(inplace=True)
 
 
     high_corr = ['MaandmutatieCPIAfgeleid_4_monthly', 'lag_imports_goods_services', 'EconomischKlimaat_2_monthly', 'Koopbereidheid_3_monthly', 'lag_gpd_invest_business_households',
-                'EconomischeSituatieLaatste12Maanden_4_monthly', 'GunstigeTijdVoorGroteAankopen_8_monthly', 'M3_2_monthly', 'UK_monthly', 'CPIAfgeleid_2_monthly', 'ExpectedActivity_2_monthly']
+                'EconomischeSituatieLaatste12Maanden_4_monthly', 'GunstigeTijdVoorGroteAankopen_8_monthly', 'M3_2_monthly', 'M3_1_monthly', 'UK_monthly', 'CPIAfgeleid_2_monthly', 'ExpectedActivity_2_monthly']
 
     df1.drop(columns = high_corr, inplace = True)
     printme(df1)
@@ -136,6 +137,5 @@ def collecttransform():
     return df1, firstGDPlog
 
 
-# df1, firstGDPlog = collecttransform()
-# printme(df1)
-# print(firstGDPlog)
+df1, firstGDPlog = collecttransform()
+printme(df1)

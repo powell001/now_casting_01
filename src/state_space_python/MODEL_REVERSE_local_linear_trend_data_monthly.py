@@ -10,48 +10,43 @@ from dateutil import relativedelta
 
 from local_linear_trend_code import LocalLinearTrend
 
-data1 = pd.read_csv("src\\state_space_python\\a0_combinedMonthly_statespace.csv", index_col=[0])
-data1.index = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
-dates = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
-print(data1.index[::-1])
+data1 = pd.read_csv("src\state_space_python\mergedDataforAnalysis_statespace.csv", index_col=[0])
+data1.index = pd.date_range(start='4/1/1995', end = '7/1/2024', freq='QS')
 
+print("datat1: ", data1)
+_, cols = data1.shape
 
-# emptyDF = pd.DataFrame(np.nan, index=dates,columns = data1.columns )
+forecasts = []
+allfeatures = []
+for i in np.arange(0,cols):
+    print("i = : ", i)
+    df1 = data1.iloc[:-1, [i]]   # start at 1
 
-# print(emptyDF)
-# rows, cols = emptyDF.shape
+    # horizon
+    horizon =  df1.isna().sum().values[0]
+    print("horizon: ", horizon)
 
-# allfeatures = []
-# for i in np.arange(0,cols):
-#     print("Column number: ", i)
-
-#     ### AEX has all data:
-#     if i == 37:
-#         break
-
-#     df1 = data1.iloc[:, [i]]
-#     df1.dropna(inplace=True)
+    if horizon > 0:
+        # create new, temporary dataframe to put nans on end of dataframe
+        hz1 = df1.values[horizon:].tolist()
+        hz2 = np.append(hz1[::-1], np.repeat(np.nan, horizon))    
+        df2 = pd.DataFrame(hz2)
+        df2.index = df1.index
     
-#     # months to forecast
-#     delta = relativedelta.relativedelta(data1.index[-1], df1.index[-1])
-#     horizon = delta.months-1
+        # Setup the model
+        mod = LocalLinearTrend(df2.iloc[:-horizon,:])
+        
+        # Fit it using MLE (recall that we are fitting the three variance parameters)
+        res = mod.fit(disp=False)
+        
+        # forecast
+        fore1 = res.forecast(horizon.tolist())
+        allforecasts = fore1.values.tolist()
+        allforecasts = allforecasts[::-1]
 
-#     # Setup the model
-#     mod = LocalLinearTrend(df1)
-    
-#     # Fit it using MLE (recall that we are fitting the three variance parameters)
-#     res = mod.fit(disp=False)
+        for j in np.arange(0,horizon):
+            data1.iloc[j, [i]] = allforecasts[j]
+     
 
-#     if horizon == 0:
-#         fore1 = [np.NaN]
-#         onefeature = np.append(fore1, df1.values).tolist()
-#         emptyDF.iloc[-len(onefeature)-1:-1, i] = onefeature
-#     else:    
-#         fore1 = res.forecast(horizon)
-#         onefeature = np.append(df1.values, fore1).tolist()
-#         emptyDF.iloc[-len(onefeature)-1:-1, i] = onefeature
-
-    
-# extendedMonthlydata = emptyDF.iloc[:-1,:]
-# extendedMonthlydata.to_csv("data/a0_combinedMonthly_statespacexxx.csv")
-# extendedMonthlydata.to_csv("src/state_space_python/a0_combinedMonthly_statespacexxx.csv")
+data1.to_csv("src\state_space_python\mergedDataforAnalysis_statespace_COMPLETE.csv")   
+data1.to_csv("data\mergedDataforAnalysis_statespace_COMPLETE.csv") 

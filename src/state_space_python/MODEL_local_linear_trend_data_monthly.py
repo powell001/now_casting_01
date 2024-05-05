@@ -24,7 +24,8 @@ for i in np.arange(0,cols):
     print("Column number: ", i)
 
     ### AEX has all data:
-    if i == 37:
+    if i == 37: # add AEX by hand below
+        emptyDF.iloc[:, i] = data1.iloc[:, [i]]
         break
 
     df1 = data1.iloc[:, [i]]

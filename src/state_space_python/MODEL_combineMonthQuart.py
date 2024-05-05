@@ -46,3 +46,4 @@ Qtdata = Qtdata.loc["04/01/1995":, :]
 
 data2 = pd.merge(Qtdata, Xdata, left_index = True, right_index = True, how = 'outer')
 data2.to_csv("src\\state_space_python\\mergedDataforAnalysis_statespace.csv")
+data2.to_csv("data\\mergedDataforAnalysis_statespace.csv")
