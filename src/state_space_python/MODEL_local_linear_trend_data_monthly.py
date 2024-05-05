@@ -11,8 +11,8 @@ from dateutil import relativedelta
 from local_linear_trend_code import LocalLinearTrend
 
 data1 = pd.read_csv("data/a0_combinedMonthly.csv", index_col=[0])
-data1.index = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
-dates = pd.date_range(start='1981-01-01', end='2024-05-01', freq='MS')
+data1.index = pd.date_range(start='1981-01-01', end='2024-06-01', freq='MS')
+dates = pd.date_range(start='1981-01-01', end='2024-06-01', freq='MS')
 
 emptyDF = pd.DataFrame(np.nan, index=dates,columns = data1.columns )
 
@@ -21,6 +21,12 @@ rows, cols = emptyDF.shape
 
 allfeatures = []
 for i in np.arange(0,cols):
+    print("Column number: ", i)
+
+    ### AEX has all data:
+    if i == 37:
+        break
+
     df1 = data1.iloc[:, [i]]
     df1.dropna(inplace=True)
     
