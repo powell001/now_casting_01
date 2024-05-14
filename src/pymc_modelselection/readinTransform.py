@@ -19,8 +19,7 @@ def collecttransform():
     # use C:\Users\jpark\VSCode\now_casting_01\src\state_space_python\local_linear_trend_data_quarterly
     # to extend gdp data
 
-    data1 = pd.read_csv("data\mergedDataforAnalysis_statespace.csv", index_col=[0])
-    gdp_total_original = data1['gdp_total']
+    data1 = pd.read_csv("data\mergedDataforAnalysis_statespace_COMPLETE.csv", index_col=[0])
 
     numcols = data1.shape[1]
 
@@ -36,12 +35,11 @@ def collecttransform():
 
     ### Difference
     nodiffthese = data1.columns.tolist()
-    nodiffthese.remove('gdp_total')
-    
-    diffthese = ['gdp_total']
+    nodiffthese.remove('gdp_total')        
+    diffthese = ['gdp_total']  #################### Difference GDP #####################
 
     ######################
-    # Dummy removed???
+    # Dummy removed 
     ######################
     assert numcols == len(nodiffthese) + len(diffthese) + 9#seasonned, dummy
 
@@ -49,8 +47,10 @@ def collecttransform():
     diff_data1 = data1.copy()
     data1.to_csv("output_csvs_etc\datanodiff.csv")
 
+    #####
+    # differenced data
+    #####
     data1[diffthese] = diff_data1[diffthese].diff()
-
     printme(data1)
 
     # lag these (real values wont be available)
@@ -82,15 +82,9 @@ def collecttransform():
     ### Add trend ###
     data1['trend'] = np.arange(0, data1.shape[0])
 
-    ### Normalize
+    ### Normalize (Including GDP) 
     normalized_data1 = (data1 - data1.mean())/data1.std()
-    #normalized_data1['gdp_total'] = data1['gdp_total']
-
-    ### Diff Log gdp_total
-    #normalized_data1['gdp_total'] = np.log(gdp_total_original)
-    #normalized_data1['gdp_total'] = gdp_total_original.diff()
-    firstGDPlog = np.log(gdp_total_original).values[0] # needed to reconstruct
-    normalized_data1['gdp_total'] = np.log(gdp_total_original).diff()
+    normalized_data1.to_csv("modelDATA.csv")
 
     # ##############################
     # # PYMC models
@@ -118,24 +112,49 @@ def collecttransform():
     ##############
     # Examine model data
     ##############
-    too_few_obs = ['BusinessOutlook_Industry_monthly', 'BusinessOutlook_Retail_monthly', 'IMP_advanceEconomies_monthly', 'EXP_advancedEconomies_monthly', 'IMP_EuroArea_monthly', 'Exp_EuroArea_monthly']
-    df1.drop(columns = too_few_obs, inplace = True)
-    df1.dropna(inplace=True)
+    # few observations:
 
+    # too_few_obs = ['BusinessOutlook_Industry_monthly', 'BusinessOutlook_Retail_monthly', 'IMP_advanceEconomies_monthly', 'EXP_advancedEconomies_monthly', 'IMP_EuroArea_monthly', 'Exp_EuroArea_monthly']
+    # df1.drop(columns = too_few_obs, inplace = True)
+    # df1.dropna(inplace=True)
 
-    high_corr = ['MaandmutatieCPIAfgeleid_4_monthly', 'lag_imports_goods_services', 'EconomischKlimaat_2_monthly', 'Koopbereidheid_3_monthly', 'lag_gpd_invest_business_households',
-                'EconomischeSituatieLaatste12Maanden_4_monthly', 'GunstigeTijdVoorGroteAankopen_8_monthly', 'M3_2_monthly', 'M3_1_monthly', 'UK_monthly', 'CPIAfgeleid_2_monthly', 'ExpectedActivity_2_monthly']
+    # highly correlated:
+    high_corr = [
+                    'lag_imports_goods_services',
+                    'M3_1_monthly', 
+                    'lag_investments',
+                    'Koopbereidheid_3_monthly', 
+                    'CPI_1_monthly',
+                    'MaandmutatieCPI_3_monthly',
+                    'M3_2_monthly',
+                    'IMP_advanceEconomies_monthly', 
+                    'EXP_advancedEconomies_monthly']
 
     df1.drop(columns = high_corr, inplace = True)
-    printme(df1)
+    # printme(df1)
 
     corr1 = df1.corr()
     corr1.to_csv('output_csvs_etc\correlations.csv')
 
     df1.to_csv("output_csvs_etc\premodel_data.csv")
 
-    return df1, firstGDPlog
+    return df1
 
 
-df1, firstGDPlog = collecttransform()
+df1 = collecttransform()
+
+
+
+df1.to_csv("jeff1.csv")
 printme(df1)
+
+###############
+# reconstitutes1
+################
+# print(stdGDP, meanGDP)
+
+# reconstitute1 = (df1['gdp_total'] * stdGDP) + meanGDP
+# gdp2 = np.append(firstGDP, reconstitute1.dropna())
+# print(np.cumsum(gdp2))
+
+# print(firstGDP)
