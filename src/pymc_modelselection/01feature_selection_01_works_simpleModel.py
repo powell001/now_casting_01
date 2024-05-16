@@ -34,10 +34,11 @@ mycores = 1
 #########################################################################################
 # collect from transformed data, see: "src\\pymc_modelselection\\readinTransform.py" 
 #########################################################################################
-df1, firstGDPlog = collecttransform()
+df1 = collecttransform()
 
 # NaNs
 df1.dropna(inplace=True)
+df1.to_csv("tmp22.csv")
 
 printme(df1)
 
@@ -45,10 +46,7 @@ df1['gdp_total'].hist();
 plt.title("Transformed NL Total GDP")
 plt.savefig("fig\gdp_total")
 
-
-#df1 = df1.iloc[:, [0,1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,46,47]] ############## Select Features
-df1 = df1.iloc[:, [0,1,2,6,7,11,12,18,28,40,41]] ############## Select Features
-#df1 = df1.iloc[:, [0,1,2,4,9,13,47]] ############## Select Features
+df1 = df1.iloc[:, [0,1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,47]] ############## Select Features
 
 X = df1.copy()
 y = X.pop("gdp_total")
@@ -69,98 +67,98 @@ y_test = y.iloc[number1:]
 X_outsample = X.iloc[-outsample:, :]
 y_outsample = y.iloc[-outsample:]
 
-# with  pm.Model(coords={"predictors": X.columns.values}) as random_model:
-#     # Prior on error SD
-#     sigma = pm.HalfNormal("sigma", 1)
+with  pm.Model(coords={"predictors": X.columns.values}) as random_model:
+    # Prior on error SD
+    sigma = pm.HalfNormal("sigma", 1)
 
-#     beta = pm.Normal("beta", 0, 1, dims="predictors")
+    beta = pm.Normal("beta", 0, 1, dims="predictors")
 
-#      # No shrinkage on intercept
-#     alpha = pm.Normal("alpha", 0, 1)
+     # No shrinkage on intercept
+    alpha = pm.Normal("alpha", 0, 1)
 
-#     scores = pm.Normal("scores", alpha + at.dot(X.values, beta), sigma, observed=y.values)
+    scores = pm.Normal("scores", alpha + at.dot(X.values, beta), sigma, observed=y.values)
 
-#     idata_random = pm.sample(tune = mytune, draws = mydraws, n_init=myn_init, idata_kwargs={"log_likelihood": True}, cores=mycores, chains=mychains)
-#     idata_random.extend(pm.sample_posterior_predictive(idata_random))
+    idata_random = pm.sample(tune = mytune, draws = mydraws, n_init=myn_init, idata_kwargs={"log_likelihood": True}, cores=mycores, chains=mychains)
+    idata_random.extend(pm.sample_posterior_predictive(idata_random))
 
 
-#### Model
-# graphvis = pm.model_to_graphviz(random_model)
-# graphvis.view()
+### Model
+graphvis = pm.model_to_graphviz(random_model)
+graphvis.view()
 
 ####################
 #### Prior data
 ####################
-# with random_model:
-#     prior_samples = pm.sample_prior_predictive(200)
+with random_model:
+    prior_samples = pm.sample_prior_predictive(200)
 
-# az.plot_dist(
-#     df1['gdp_total'],
-#     kind="kde",
-#     color='red',
-#     hist_kwargs=dict(alpha=0.6),
-#     label="observed",
-# )
-# az.plot_dist(
-#     prior_samples.prior_predictive["scores"],
-#     kind="kde",
-#     color='blue',
-#     hist_kwargs=dict(alpha=0.6),
-#     label="prior predictive (simulated)",
-# )
-# plt.savefig("fig\plot_prior_predictives", dpi=75)
-# plt.show()
-# plt.close()
+az.plot_dist(
+    df1['gdp_total'],
+    kind="kde",
+    color='red',
+    hist_kwargs=dict(alpha=0.6),
+    label="observed",
+)
+az.plot_dist(
+    prior_samples.prior_predictive["scores"],
+    kind="kde",
+    color='blue',
+    hist_kwargs=dict(alpha=0.6),
+    label="prior predictive (simulated)",
+)
+plt.savefig("fig\plot_prior_predictives", dpi=75)
+plt.show()
+plt.close()
 
 ###################
 ##### Posteriors
 ###################
 # These are posteriors
-# az.plot_trace(idata_random, combined=True)
-# plt.savefig("fig\plot_trace")
+az.plot_trace(idata_random, combined=True)
+plt.savefig("fig\plot_trace")
+plt.show()
+plt.close()
+
+# Trace
+# pm.summary(idata_random)
+print(idata_random.keys())
+print(idata_random.posterior)
+print(idata_random.posterior['predictors'])
+
+# Summary of posteriors
+# az.summary(idata_random, round_to=5).to_csv("output_csvs_etc\posteriorSummary.csv")
+
+# Plots of posteriors
+# az.plot_posterior(idata_random)
+# plt.savefig("fig\plot_posterior_random")
 # plt.show()
 # plt.close()
 
-# # Trace
-# # pm.summary(idata_random)
-# print(idata_random.keys())
-# print(idata_random.posterior)
-# print(idata_random.posterior['predictors'])
-
-# # Summary of posteriors
-# # az.summary(idata_random, round_to=5).to_csv("output_csvs_etc\posteriorSummary.csv")
-
-# # Plots of posteriors
-# # az.plot_posterior(idata_random)
-# # plt.savefig("fig\plot_posterior_random")
-# # plt.show()
-# # plt.close()
-
-# # Forest plots
-# az.plot_forest(idata_random, var_names=["beta"], rope=[-0.15, 0.15], combined=True, hdi_prob=0.95, r_hat=True);
-# plt.tight_layout()
-# plt.savefig("fig\plot_forest", dpi=75)
+# Forest plots
+az.plot_forest(idata_random, var_names=["beta"], rope=[-0.15, 0.15], combined=True, hdi_prob=0.95, r_hat=True);
+plt.tight_layout()
+plt.savefig("fig\plot_forest_allfeatures", dpi=75)
 
 # # Bayesian posterior
-# az.plot_bpv(idata_random, var_names=["scores"], kind="p_value")
-# plt.savefig("fig\plot_bpv_pvalue", dpi=75)
+az.plot_bpv(idata_random, var_names=["scores"], kind="p_value")
+plt.savefig("fig\plot_bpv_pvalue", dpi=75)
+plt.show()
+
+az.plot_bpv(idata_random, var_names=["scores"], kind="t_stat")
+plt.savefig("fig\plot_bpv_tstat", dpi=75)
+plt.show()
+
+az.plot_bpv(idata_random, var_names=["scores"], kind="u_value")
+plt.savefig("fig\plot_bpv_uvalue", dpi=75)
+plt.show()
+
+# az.plot_ppc(idata_random, var_names=["scores"])
+# plt.savefig("fig\plot_ppc", dpi=75)
 # plt.show()
 
-# az.plot_bpv(idata_random, var_names=["scores"], kind="t_stat")
-# plt.savefig("fig\plot_bpv_tstat", dpi=75)
-# plt.show()
-
-# az.plot_bpv(idata_random, var_names=["scores"], kind="u_value")
-# plt.savefig("fig\plot_bpv_uvalue", dpi=75)
-# plt.show()
-
-# # az.plot_ppc(idata_random, var_names=["scores"])
-# # plt.savefig("fig\plot_ppc", dpi=75)
-# # plt.show()
-
-# # Chains
-# az.plot_autocorr(idata_random, combined=True)
-# plt.show()
+# Chains
+az.plot_autocorr(idata_random, combined=True)
+plt.show()
 
 #############################################################
 # Laplace
@@ -263,103 +261,103 @@ y_outsample = y.iloc[-outsample:]
 # plt.show()
 
 
-################################################################
-# Students T
-################################################################
-with  pm.Model(coords={"predictors": X.columns.values}) as student_model:
-    # Prior on error SD
-    sigma = pm.HalfNormal("sigma", 1)
+# ################################################################
+# # Students T
+# ################################################################
+# with  pm.Model(coords={"predictors": X.columns.values}) as student_model:
+#     # Prior on error SD
+#     sigma = pm.HalfNormal("sigma", 1)
 
-    beta = pm.Normal("beta", 0, 1, dims="predictors")
+#     beta = pm.Normal("beta", 0, 1, dims="predictors")
 
-     # No shrinkage on intercept
-    alpha = pm.Normal("alpha", 0, 1)
+#      # No shrinkage on intercept
+#     alpha = pm.Normal("alpha", 0, 1)
 
-    mu = pm.Deterministic("mu", alpha + at.dot(X.values, beta))
+#     mu = pm.Deterministic("mu", alpha + at.dot(X.values, beta))
 
-    scores = pm.StudentT("scores", mu=mu, sigma=sigma, nu=2, observed=y.values)
+#     scores = pm.StudentT("scores", mu=mu, sigma=sigma, nu=2, observed=y.values)
 
-    idata_student = pm.sample(tune = mytune, draws = mydraws, n_init=myn_init, idata_kwargs={"log_likelihood": True}, cores=mycores, chains=mychains)
-    idata_student.extend(pm.sample_posterior_predictive(idata_student))
+#     idata_student = pm.sample(tune = mytune, draws = mydraws, n_init=myn_init, idata_kwargs={"log_likelihood": True}, cores=mycores, chains=mychains)
+#     idata_student.extend(pm.sample_posterior_predictive(idata_student))
 
-#### Model
-graphvis = pm.model_to_graphviz(student_model)
-graphvis.view()
+# #### Model
+# graphvis = pm.model_to_graphviz(student_model)
+# graphvis.view()
 
-#####################
-##### Prior data
-#####################
-# Prior
-with student_model:
-    prior_samples = pm.sample_prior_predictive(200)
+# #####################
+# ##### Prior data
+# #####################
+# # Prior
+# with student_model:
+#     prior_samples = pm.sample_prior_predictive(200)
 
-az.plot_dist(
-    df1['gdp_total'],
-    kind="kde",
-    color='red',
-    hist_kwargs=dict(alpha=0.6),
-    label="observed",
-)
-az.plot_dist(
-    prior_samples.prior_predictive["scores"],
-    kind="kde",
-    color='blue',
-    hist_kwargs=dict(alpha=0.6),
-    label="prior predictive (simulated)",
-)
-plt.savefig("fig\plot_prior_predictives", dpi=75)
-plt.show()
-plt.close()
+# az.plot_dist(
+#     df1['gdp_total'],
+#     kind="kde",
+#     color='red',
+#     hist_kwargs=dict(alpha=0.6),
+#     label="observed",
+# )
+# az.plot_dist(
+#     prior_samples.prior_predictive["scores"],
+#     kind="kde",
+#     color='blue',
+#     hist_kwargs=dict(alpha=0.6),
+#     label="prior predictive (simulated)",
+# )
+# plt.savefig("fig\plot_prior_predictives", dpi=75)
+# plt.show()
+# plt.close()
 
-##################
-#### Posteriors
-##################
+# ##################
+# #### Posteriors
+# ##################
 
-az.plot_trace(idata_student, combined=True)
-plt.savefig("fig\plot_trace")
-plt.show()
-plt.close()
+# az.plot_trace(idata_student, combined=True)
+# plt.savefig("fig\plot_trace")
+# plt.show()
+# plt.close()
 
-# Trace
-pm.summary(idata_student)
-# print(idata_laplace.keys())
-# print(idata_laplace.posterior)
-# print(idata_laplace.posterior['predictors'])
+# # Trace
+# pm.summary(idata_student)
+# # print(idata_laplace.keys())
+# # print(idata_laplace.posterior)
+# # print(idata_laplace.posterior['predictors'])
 
-# Summary of posteriors
-az.summary(idata_student, round_to=5).to_csv("output_csvs_etc\posteriorSummary.csv")
+# # Summary of posteriors
+# az.summary(idata_student, round_to=5).to_csv("output_csvs_etc\posteriorSummary.csv")
 
-# # Plots of posteriors
-az.plot_posterior(idata_student)
-plt.savefig("fig\plot_posterior_random")
-plt.show()
-plt.close()
+# # # Plots of posteriors
+# az.plot_posterior(idata_student)
+# plt.savefig("fig\plot_posterior_random")
+# plt.show()
+# plt.close()
 
-# # Forest plots
-az.plot_forest(idata_student, var_names=["beta"], rope=[-0.15, 0.15], combined=True, hdi_prob=0.95, r_hat=True);
-plt.tight_layout()
-plt.savefig("fig\plot_forest", dpi=75)
+# # # Forest plots
+# az.plot_forest(idata_student, var_names=["beta"], rope=[-0.15, 0.15], combined=True, hdi_prob=0.95, r_hat=True);
+# plt.tight_layout()
+# plt.savefig("fig\plot_forest", dpi=75)
 
-# # Bayesian posterior
-az.plot_bpv(idata_student, var_names=["scores"], kind="p_value")
-plt.savefig("fig\plot_bpv_pvalue", dpi=75)
-plt.show()
+# # # Bayesian posterior
+# az.plot_bpv(idata_student, var_names=["scores"], kind="p_value")
+# plt.savefig("fig\plot_bpv_pvalue", dpi=75)
+# plt.show()
 
-az.plot_bpv(idata_student, var_names=["scores"], kind="t_stat")
-plt.savefig("fig\plot_bpv_tstat", dpi=75)
-plt.show()
+# az.plot_bpv(idata_student, var_names=["scores"], kind="t_stat")
+# plt.savefig("fig\plot_bpv_tstat", dpi=75)
+# plt.show()
 
-az.plot_bpv(idata_student, var_names=["scores"], kind="u_value")
-plt.savefig("fig\plot_bpv_uvalue", dpi=75)
-plt.show()
+# az.plot_bpv(idata_student, var_names=["scores"], kind="u_value")
+# plt.savefig("fig\plot_bpv_uvalue", dpi=75)
+# plt.show()
 
-az.plot_ppc(idata_student, var_names=["scores"])
-plt.savefig("fig\plot_ppc", dpi=75)
-plt.show()
+# az.plot_ppc(idata_student, var_names=["scores"])
+# plt.savefig("fig\plot_ppc", dpi=75)
+# plt.show()
 
-# Chains
-az.plot_autocorr(idata_student, combined=True)
-plt.show()
+# # Chains
+# az.plot_autocorr(idata_student, combined=True)
+# plt.show()
 
 
 

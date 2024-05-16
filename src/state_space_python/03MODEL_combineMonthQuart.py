@@ -39,7 +39,7 @@ Xdata = creatXdata()
 
 Qtdata = pd.read_csv('src\\state_space_python\\a0_combinedQuarterly_statespace.csv', index_col=[0])
 
-Qtdata.index = pd.date_range(start='04/01/1995', end='07/01/2024', freq="Q").to_period('Q')
+Qtdata.index = pd.date_range(start='04/01/1995', end='10/01/2024', freq="Q").to_period('Q')
 Qtdata.index = pd.PeriodIndex(Qtdata.index, freq='Q').to_timestamp()
 
 Qtdata = Qtdata.loc["04/01/1995":, :]

@@ -36,9 +36,10 @@ orig1 = pd.read_csv(r"data\a0_combinedQuarterly.csv", index_col=[0])
 # collect from transformed data, see: "src\\pymc_modelselection\\readinTransform.py" 
 #########################################################################################
 df1 = collecttransform()
+printme(df1)
 
 ############### DROP NA
-df1.dropna(inplace= True)
+#df1.dropna(inplace= True)
 
 printme(df1)
 
@@ -50,14 +51,23 @@ plt.savefig("fig\gdp_total")
 #df1 = df1.iloc[:, [0,1,2,6,7,11,12,18,28,40,41,47]] ############## Select Features
 #df1 = df1.iloc[:, [0,1,2,4,9,13,47]] ############## Select Features
 #df1 = df1.iloc[:, [0,1,2,4,9,11,12,13,39,40,47,48]]
-df1 = df1.iloc[:, [0,1,2,4,9,11,12,13,24,39,40,47]]
+#df1 = df1.iloc[:, [0,1,2,4,9,11,12,13,24,39,40,47]]
+
+featureLists = [0,1,2,4,6,7,9,11,12,15,18,22,24,26,28,29,37,38,39,40,41]
+df1 = df1.iloc[:, featureLists]
+
+############################ TEMPORARY
+df1 = df1.iloc[7:,]
+df1.to_csv("tmp.csv")
+df1 = pd.read_csv("tmporary.csv", index_col=[0])
+df1.dropna(inplace=True)
 
 
 X = df1.copy()
 y = X.pop("gdp_total")
 N, D = X.shape
 
-number1 = 115 ##################### number of observations, may not be N above; N may be less number of observations because N contains 'extended' data 
+number1 = 116 ##################### number of observations, may not be N above; N may be less number of observations because N contains 'extended' data 
 outsample = df1.shape[0] - number1
 
 # Train ############
@@ -86,7 +96,7 @@ with  pm.Model(coords={"predictors": X.columns.values}) as student_model:
 
     mu = pm.Deterministic("mu", alpha + at.dot(X.values, beta))
 
-    scores = pm.StudentT("scores", mu=mu, sigma=sigma, nu=2, observed=y.values)
+    scores = pm.StudentT("scores", mu=mu, sigma=sigma, nu=3, observed=y.values)
 
     idata_student = pm.sample(tune = mytune, draws = mydraws, n_init=myn_init, idata_kwargs={"log_likelihood": True}, target_accept=0.98, cores=mycores, chains=mychains)
     idata_student.extend(pm.sample_posterior_predictive(idata_student))
@@ -96,15 +106,8 @@ p_test_pred = idata_student.posterior_predictive["scores"].mean(dim=["chain", "d
 forecast1 = pd.DataFrame(p_test_pred.values.tolist(), columns=['forecast'])
 print(forecast1)
 
-# dffed = forecast1.values.tolist()
-# print(dffed)
-# print("THIS IS THE CHANGE: ", (dffed * stdGDP) + meanGDP)
-
-
-
-# az.plot_posterior(idata_student.posterior_predictive["scores"])
-# plt.show()
-
+az.plot_ppc(idata_student, num_pp_samples=100)
+plt.show()
 
 ###################
 ###################
@@ -124,9 +127,9 @@ print(d1)
 d1.index = df1.index
 print(d1)
 
-
-#print(df1['gdp_total'])
-
+###################
+# other methods
+###################
 
 # reconstitute1 = (df1['gdp_total'] * stdGDP) + meanGDP
 # gdp2 = np.append(firstGDP, reconstitute1.dropna())

@@ -11,7 +11,7 @@ from local_linear_trend_code import LocalLinearTrend
 
 data1 = pd.read_csv("data/a0_combinedQuarterly.csv", index_col=[0])
 
-data1.index = pd.date_range(start='4/1/1995', end = '1/1/2024', freq='QS')
+data1.index = pd.date_range(start='4/1/1995', end = '4/1/2024', freq='QS')
 print("datat1: ", data1)
 _, cols = data1.shape
 
