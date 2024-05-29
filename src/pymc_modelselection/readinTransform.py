@@ -14,7 +14,7 @@ pd.set_option('display.width', 400)
 # Make sure to get the right starting data and extend it if necessary
 ###############################
 
-def collecttransform():
+def collecttransform(diff_gdp_total = True):
 
     # use C:\Users\jpark\VSCode\now_casting_01\src\state_space_python\local_linear_trend_data_quarterly
     # to extend gdp data
@@ -33,25 +33,21 @@ def collecttransform():
 
     printme(data1)
 
-    ### Difference
-    nodiffthese = data1.columns.tolist()
-    nodiffthese.remove('gdp_total')        
-    diffthese = ['gdp_total']  #################### Difference GDP #####################
-
-    ######################
-    # Dummy removed 
-    ######################
-    assert numcols == len(nodiffthese) + len(diffthese) + 9#seasonned, dummy
-
+    ###########################################
     # diff these
-    diff_data1 = data1.copy()
-    data1.to_csv("output_csvs_etc\datanodiff.csv")
-
-    #####
+    ###########################################
     # differenced data
-    #####
-    data1[diffthese] = diff_data1[diffthese].diff()
-    printme(data1)
+    diffdatacopy = data1.copy()
+    diffthesecols = ['gdp_total']
+    diff_data1 = diffdatacopy[diffthesecols]
+
+    diff_data1 = diff_data1.diff()
+    diff_data1.columns = ["diff_" + x for x in diff_data1.columns]
+   
+
+    # merge back
+    data1 = pd.concat([data1, diff_data1], axis=1)
+
 
     # lag these (real values wont be available)
     lagthese = ['imports_goods_services', 'household_cons', 'gov_consumption', 'investments',
